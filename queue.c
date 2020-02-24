@@ -12,16 +12,26 @@
 queue_t *q_new()
 {
     queue_t *q = malloc(sizeof(queue_t));
-    /* TODO: What if malloc returned NULL? */
+    if (!q)
+        return NULL;
     q->head = NULL;
+    q->tail = NULL;
+    q->size = 0;
     return q;
 }
 
 /* Free all storage used by queue */
 void q_free(queue_t *q)
 {
-    /* TODO: How about freeing the list elements and the strings? */
-    /* Free queue structure */
+    if (!q)
+        return;
+    while (q->head) {
+        list_ele_t *tmp;
+        tmp = q->head;
+        free(tmp->value);
+        free(tmp);
+        q->head = q->head->next;
+    }
     free(q);
 }
 
