@@ -143,7 +143,7 @@ void q_reverse(queue_t *q)
         return;
 
     list_ele_t *tmp1, *tmp2;
-    tmp2 = MULL;
+    tmp2 = NULL;
     q->tail = q->head;
     while (q->head) {
         tmp1 = q->head;
@@ -176,7 +176,7 @@ list_ele_t *merge(list_ele_t *l1, list_ele_t *l2)
     list_ele_t *tmp = (list_ele_t *) malloc(sizeof(list_ele_t));
     list_ele_t *re = tmp;
     while (l1 != NULL && l2 != NULL) {
-        if (strcmp(l1, l2) < 0) {
+        if (strcmp(l1->value, l2->value) < 0) {
             tmp->next = l1;
             l1 = l1->next;
         } else {
