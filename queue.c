@@ -34,7 +34,6 @@ void q_free(queue_t *q)
     }
     free(q);
 }
-
 /*
  * Attempt to insert element at head of queue.
  * Return true if successful.
@@ -48,10 +47,13 @@ bool q_insert_head(queue_t *q, char *s)
     if (!q)
         return false;
     newh = (list_ele_t *) malloc(sizeof(list_ele_t));
-    char *newv = (char *) malloc(sizeof(s));
-    if (newh == NULL || newv == NULL)
+    if (newh == NULL)
         return false;
-    newh->value = newv;
+    newh->value = (char *) malloc(sizeof(char) * (strlen(s) + 1));
+    if (newh->value == NULL) {
+        free(newh);
+        return false;
+    }
     strncpy(newh->value, s, strlen(s) + 1);
 
     newh->next = q->head;
@@ -76,10 +78,14 @@ bool q_insert_tail(queue_t *q, char *s)
     if (!q)
         return false;
     newt = (list_ele_t *) malloc(sizeof(list_ele_t));
-    char *newv = (char *) malloc(sizeof(s));
-    if (newt == NULL || newv == NULL)
+    if (newt == NULL)
         return false;
-    newt->value = newv;
+    newt->value = (char *) malloc(sizeof(char) * (strlen(s) + 1));
+    if (newt->value == NULL) {
+        free(newt);
+        return false;
+    }
+
     strncpy(newt->value, s, strlen(s) + 1);
     newt->next = NULL;
     q->tail->next = newt;
@@ -109,7 +115,6 @@ bool q_remove_head(queue_t *q, char *sp, size_t bufsize)
 
     list_ele_t *tmp = q->head;
     q->head = q->head->next;
-    tmp->next = NULL;
     free(tmp->value);
     free(tmp);
 
@@ -141,25 +146,17 @@ void q_reverse(queue_t *q)
         return;
     if (q->size <= 1)
         return;
-
-    list_ele_t *tmp1, *tmp2;
-    tmp2 = NULL;
-    q->tail = q->head;
-    while (q->head) {
-        tmp1 = q->head;
-        q->head = q->head->next;
-        tmp1->next = tmp2;
-        if (q->head == NULL) {
-            q->head = tmp1;
-        }
-        tmp2 = q->head->next;
-        q->head->next = tmp1;
-        tmp1 = q->head;
-        if (tmp2 == NULL)
-            break;
-        q->head = tmp2;
-        tmp2 = tmp1;
+    list_ele_t *tmp;
+    q->tail->next = q->head;
+    while (q->head->next != q->tail) {
+        tmp = q->head->next;
+        q->head->next = tmp->next;
+        tmp->next = q->tail->next;
+        q->tail->next = tmp;
     }
+    q->tail = q->head;
+    q->head = q->head->next;
+    q->tail->next = NULL;
 }
 
 /*
@@ -173,7 +170,14 @@ list_ele_t *merge(list_ele_t *l1, list_ele_t *l2)
         return l1;
     if (l1 == NULL)
         return l2;
-    list_ele_t *tmp = (list_ele_t *) malloc(sizeof(list_ele_t));
+    list_ele_t *tmp;
+    if (strcmp(l1->value, l2->value) < 0) {
+        tmp = l1;
+        l1 = l1->next;
+    } else {
+        tmp = l2;
+        l2 = l2->next;
+    }
     list_ele_t *re = tmp;
     while (l1 != NULL && l2 != NULL) {
         if (strcmp(l1->value, l2->value) < 0) {
@@ -189,9 +193,7 @@ list_ele_t *merge(list_ele_t *l1, list_ele_t *l2)
         tmp->next = l1;
     if (l2)
         tmp->next = l2;
-    list_ele_t *head = re->next;
-    free(re);
-    return head;
+    return re;
 }
 list_ele_t *mergesort(list_ele_t *h)
 {
@@ -212,5 +214,9 @@ list_ele_t *mergesort(list_ele_t *h)
 }
 void q_sort(queue_t *q)
 {
+    if (!q)
+        return;
+    if (q->size <= 1)
+        return;
     mergesort(q->head);
 }
