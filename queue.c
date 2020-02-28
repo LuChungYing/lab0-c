@@ -171,6 +171,7 @@ list_ele_t *merge(list_ele_t *l1, list_ele_t *l2)
     if (l1 == NULL)
         return l2;
     list_ele_t *tmp;
+
     if (strcmp(l1->value, l2->value) < 0) {
         tmp = l1;
         l1 = l1->next;
@@ -193,6 +194,7 @@ list_ele_t *merge(list_ele_t *l1, list_ele_t *l2)
         tmp->next = l1;
     if (l2)
         tmp->next = l2;
+
     return re;
 }
 list_ele_t *mergesort(list_ele_t *h)
@@ -218,5 +220,5 @@ void q_sort(queue_t *q)
         return;
     if (q->size <= 1)
         return;
-    mergesort(q->head);
+    q->head = mergesort(q->head);
 }
