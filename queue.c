@@ -15,7 +15,7 @@ queue_t *q_new()
     if (!q)
         return NULL;
     q->head = NULL;
-    q->tail = NULL;
+    q->indirect_tail = &q->head;
     q->size = 0;
     return q;
 }
@@ -61,7 +61,7 @@ bool q_insert_head(queue_t *q, char *s)
 
     q->size++;
     if (q->size == 1)
-        q->tail = newh;
+        q->indirect_tail = &newh->next;
     return true;
 }
 
@@ -88,9 +88,8 @@ bool q_insert_tail(queue_t *q, char *s)
 
     strncpy(newt->value, s, strlen(s) + 1);
     newt->next = NULL;
-    q->tail->next = newt;
-    q->tail = newt;
-
+    *(q->indirect_tail) = newt;
+    q->indirect_tail = &newt->next;
     q->size++;
     if (q->size == 1)
         q->head = newt;
@@ -120,7 +119,7 @@ bool q_remove_head(queue_t *q, char *sp, size_t bufsize)
 
     q->size--;
     if (q->size == 0)
-        q->tail = NULL;
+        q->indirect_tail = &q->head;
     return true;
 }
 
@@ -146,17 +145,18 @@ void q_reverse(queue_t *q)
         return;
     if (q->size <= 1)
         return;
-    list_ele_t *tmp;
-    q->tail->next = q->head;
-    while (q->head->next != q->tail) {
-        tmp = q->head->next;
-        q->head->next = tmp->next;
-        tmp->next = q->tail->next;
-        q->tail->next = tmp;
-    }
-    q->tail = q->head;
+    list_ele_t *prev = q->head, *next;
+
+    q->indirect_tail = &prev->next;
     q->head = q->head->next;
-    q->tail->next = NULL;
+    *q->indirect_tail = NULL;
+    while (q->head != NULL) {
+        next = q->head->next;
+        q->head->next = prev;
+        prev = q->head;
+        q->head = next;
+    }
+    q->head = prev;
 }
 
 /*
